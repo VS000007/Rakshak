@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { CheckCircle2, AlertTriangle, Loader2, ShieldAlert } from "lucide-react";
 import Link from "next/link";
@@ -8,6 +8,18 @@ import Link from "next/link";
 type Status = "loading" | "success" | "expired" | "already_used" | "invalid" | "writing";
 
 export default function VerifyPinChangePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-6">
+        <Loader2 className="w-14 h-14 text-amber-400 animate-spin" />
+      </div>
+    }>
+      <VerifyPinChangeContent />
+    </Suspense>
+  );
+}
+
+function VerifyPinChangeContent() {
   const params = useSearchParams();
   const router = useRouter();
   const [status, setStatus] = useState<Status>("loading");

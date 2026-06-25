@@ -194,7 +194,7 @@ export default function ProfilePage() {
           .eq("id", user.id)
           .single();
 
-        const name = profile?.full_name || user.user_metadata?.full_name || "User";
+        const name = (profile as any)?.full_name || user.user_metadata?.full_name || "User";
         setUserName(name);
         setUserEmail(user.email || "");
         
@@ -238,14 +238,14 @@ export default function ProfilePage() {
     await supabase.from("profiles").upsert({
       id: user.id,
       full_name: user.user_metadata?.full_name || user.email?.split("@")[0] || "User",
-    }, { onConflict: "id", ignoreDuplicates: true });
+    } as any, { onConflict: "id", ignoreDuplicates: true });
 
     const { data, error } = await supabase.from("trusted_contacts").insert({
       user_id: user.id,
       name: newName.trim(),
       phone: newPhone.trim(),
       relation: newRelation.trim() || null,
-    }).select().single();
+    } as any).select().single();
 
     if (error) {
       setAddError(error.message);

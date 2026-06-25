@@ -34,7 +34,7 @@ export const uploadCapturedMediaToVault = async (videoBlob: Blob, audioBlob: Blo
       console.log("[Vault Sync] Media assets successfully locked inside bucket layers.");
       
       // C. Registry metadata insert into our private secure_vaults structural table
-      await supabase.from('secure_vaults').insert([{
+      await (supabase as any).from('secure_vaults').insert([{
         user_id: (await supabase.auth.getUser()).data.user?.id,
         encrypted_pin: hashedSecurityPin,
         video_path: videoStoragePath,

@@ -28,7 +28,7 @@ export default function useSosAlerts() {
 
           if (error || !contacts || contacts.length === 0) return;
 
-          const numbers = contacts.map(c => {
+          const numbers = (contacts as any[]).map(c => {
             if (!c.phone) return null;
             let p = c.phone.trim().replace(/\s|-/g, "");
             if (p.startsWith("+")) p = p.slice(1);

@@ -94,14 +94,14 @@ export default function CommunityReportPage() {
     }
 
     const { data, error: dbError } = await supabase
-      .from<Database['public']['Tables']['community_reports']['Insert']>("community_reports")
+      .from("community_reports")
       .insert({
         user_id: user.id,
         latitude,
         longitude,
         tag: selectedTag,
         note: note.trim() || null,
-      })
+      } as any)
       .select()
       .single();
 
@@ -110,7 +110,7 @@ export default function CommunityReportPage() {
     } else {
       setSubmitted(true);
       if (data) {
-        setReports(prev => [data, ...prev]);
+        setReports(prev => [data as any, ...prev]);
       }
       setSelectedTag(null);
       setNote("");
