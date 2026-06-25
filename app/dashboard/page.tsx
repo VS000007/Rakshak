@@ -73,7 +73,7 @@ export default function Dashboard() {
           console.error("Location permission denied or error:", err);
           router.push('/sos');
         },
-        { enableHighAccuracy: true, timeout: 5000 }
+        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
       );
     } else {
       router.push('/sos');

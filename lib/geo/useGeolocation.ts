@@ -35,12 +35,7 @@ const fallbackToIPLocation = (
     })
     .catch(err => {
       console.error("Critical: Geolocation fallback stack depleted.", err);
-      // Clean mobile-friendly fallback coordinates if the network drops completely
-      onSuccess({
-        lat: 28.6139, // Defaulting safely to Central Delhi region grid coordinates
-        lng: 77.2090,
-        precision: "Default Region Frame",
-      });
+      // Do NOT silently fall back to hardcoded coordinates — that causes wrong-location bugs
     });
 };
 
@@ -91,7 +86,7 @@ export function useGeolocation() {
         console.warn("[useGeolocation] GPS unavailable:", error.message);
         activateIPFallback();
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
     );
 
     return () => {

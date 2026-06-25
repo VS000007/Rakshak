@@ -61,7 +61,7 @@ export default function CommunityReportPage() {
       () => {
         setGeoLoading(false);
       },
-      { enableHighAccuracy: true, timeout: 10000 }
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
     );
   }, [reverseGeocode]);
 

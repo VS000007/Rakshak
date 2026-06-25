@@ -98,6 +98,7 @@ export default function RouteCheckPage() {
   const [destination, setDestination] = useState("");
   const [loading, setLoading] = useState(false);
   const [geoLoading, setGeoLoading] = useState(true);
+  const [userCoords, setUserCoords] = useState<{lat: number; lng: number} | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<RouteResult | null>(null);
 
@@ -116,44 +117,25 @@ export default function RouteCheckPage() {
 
   // Get real-time location on mount
   useEffect(() => {
-    const fetchIpFallback = async () => {
-      try {
-        // Utilizing highly optimized APAC regional network nodes for pinpoint country accuracy
-        const ipRes = await fetch("http://ip-api.com/json");
-        if (!ipRes.ok) throw new Error("Network response was not acceptable");
-        const data = await ipRes.json();
-        if (data.status !== "success") throw new Error(data.message || "Query failed");
-
-        console.log(`[Precision Fallback] Located via ${data.query} at ${data.city}, ${data.regionName}`);
-
-        const placeName = await reverseGeocode(data.lat, data.lon);
-        setSource(placeName || `${data.city}, ${data.regionName}`);
-      } catch (fallbackErr) {
-        console.error("Critical: Geolocation fallback stack depleted.", fallbackErr);
-        // Clean mobile-friendly fallback coordinates if the network drops completely
-        const placeName = await reverseGeocode(28.6139, 77.2090);
-        setSource(placeName || "Central Delhi"); // Defaulting safely to Central Delhi region grid coordinates
-      } finally {
-        setGeoLoading(false);
-      }
-    };
-
     if (!navigator.geolocation) {
-      fetchIpFallback();
+      setGeoLoading(false);
       return;
     }
 
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
-        const placeName = await reverseGeocode(pos.coords.latitude, pos.coords.longitude);
+        const { latitude, longitude } = pos.coords;
+        setUserCoords({ lat: latitude, lng: longitude });
+        const placeName = await reverseGeocode(latitude, longitude);
         setSource(placeName);
         setGeoLoading(false);
       },
       (err) => {
         console.error("Geolocation error:", err.message);
-        fetchIpFallback();
+        // Do NOT fall back to Delhi or IP — let the user type manually
+        setGeoLoading(false);
       },
-      { enableHighAccuracy: true, timeout: 10000 }
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
     );
   }, [reverseGeocode]);
 
@@ -164,15 +146,16 @@ export default function RouteCheckPage() {
     setResult(null);
 
     try {
-      // 1. Geocode Source
-      const srcRes = await fetch(`/api/geocode?text=${encodeURIComponent(source)}`);
+      // 1. Geocode Source (with proximity bias from live GPS)
+      const biasParams = userCoords ? `&lat=${userCoords.lat}&lng=${userCoords.lng}` : '';
+      const srcRes = await fetch(`/api/geocode?text=${encodeURIComponent(source)}${biasParams}`);
       const srcData = await srcRes.json();
       if (!srcData || srcData.length === 0) throw new Error("Could not locate source address.");
       const srcCoords = { lat: parseFloat(srcData[0].lat), lng: parseFloat(srcData[0].lon) };
       const srcFormatted = srcData[0].display_name;
 
-      // 2. Geocode Destination
-      const dstRes = await fetch(`/api/geocode?text=${encodeURIComponent(destination)}`);
+      // 2. Geocode Destination (with proximity bias from live GPS)
+      const dstRes = await fetch(`/api/geocode?text=${encodeURIComponent(destination)}${biasParams}`);
       const dstData = await dstRes.json();
       if (!dstData || dstData.length === 0) throw new Error("Could not locate destination address.");
       const dstCoords = { lat: parseFloat(dstData[0].lat), lng: parseFloat(dstData[0].lon) };
