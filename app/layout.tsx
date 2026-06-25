@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import SplashScreen from "@/components/SplashScreen";
-import TripleTapListener from "@/components/TripleTapListener";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -28,7 +27,6 @@ export default function RootLayout({
       <body className={`${inter.variable} font-sans min-h-screen bg-zinc-950 text-foreground antialiased flex flex-col md:items-center md:justify-center md:p-8`}>
         <SplashScreen />
         <div className="w-full min-h-screen md:min-h-[850px] md:max-h-[900px] md:max-w-[420px] bg-background md:rounded-[2.5rem] md:shadow-[0_0_40px_rgba(225,29,72,0.15)] md:overflow-hidden md:border md:border-white/10 relative flex flex-col">
-          <TripleTapListener />
           {children}
         </div>
       </body>
