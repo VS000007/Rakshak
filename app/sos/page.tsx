@@ -327,15 +327,31 @@ export default function SOSPage() {
 
   useEffect(() => {
     if (seconds === 8) {
-      const savedPhone = typeof localStorage !== 'undefined' ? localStorage.getItem("saved_emergency_phone") || "" : "";
+      console.log("[Advanced Alert Engine] Displaying high-visibility manual bypass anchor at 8s.");
+      
+      const lat = latitude || (lastKnownLocation?.lat) || 0;
+      const lng = longitude || (lastKnownLocation?.lng) || 0;
+      const savedPhone = typeof window !== 'undefined' ? localStorage.getItem("saved_emergency_phone") || "919876543210" : "919876543210";
       const cleanPhone = savedPhone.replace(/\D/g, "");
-      if (cleanPhone) {
-        const lat = latitude || (lastKnownLocation?.lat) || 0;
-        const lng = longitude || (lastKnownLocation?.lng) || 0;
-        const trackingUrl = `https://maps.google.com/?q=${lat},${lng}`;
-        const alertString = `CRITICAL ALERT: SOS active for HK. Live movement tracking pin: ${trackingUrl}`;
-        // Standard window management protocol to open a visible, focused WhatsApp window
-        window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(alertString)}`, 'WhatsAppSOS', 'width=800,height=600,noopener,noreferrer');
+      
+      const msgBody = `CRITICAL ALERT: SOS active for HK. Track live movement path here: https://maps.google.com/?q=${lat},${lng}`;
+      const nativeWaUrl = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(msgBody)}`;
+
+      if (typeof document !== 'undefined') {
+        let bypassBanner = document.createElement("a");
+        bypassBanner.id = "sos-wa-bypass-banner";
+        bypassBanner.href = nativeWaUrl;
+        bypassBanner.target = "_blank";
+        
+        bypassBanner.style.cssText = "position: fixed; top: 20px; left: 5%; width: 90%; background: #dc2626; color: #ffffff; border: 2px solid #ffffff; padding: 14px; text-align: center; font-weight: 800; font-size: 13px; font-family: monospace; text-decoration: none; border-radius: 4px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); z-index: 99999; text-transform: uppercase; letter-spacing: 0.5px; display: block; animation: flash 1s infinite;";
+        bypassBanner.innerHTML = "⚠️ CLICK TO DESPATCH INSTANT WHATSAPP ALERT";
+        
+        document.body.appendChild(bypassBanner);
+
+        setTimeout(() => { 
+          const banner = document.getElementById("sos-wa-bypass-banner");
+          if (banner) banner.remove(); 
+        }, 8000);
       }
     }
 
