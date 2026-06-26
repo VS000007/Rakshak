@@ -257,6 +257,7 @@ export default function SOSPage() {
   const streamRef = useRef<MediaStream | null>(null);
   const [lastKnownLocation, setLastKnownLocation] = useState<{lat: number, lng: number} | null>(null);
   const [messagesDispatched, setMessagesDispatched] = useState(false);
+  const [displayAlertLink, setDisplayAlertLink] = useState(false);
   
   const [trustedContactsList, setTrustedContactsList] = useState<any[]>([]);
   const supabase = createClient();
@@ -326,33 +327,12 @@ export default function SOSPage() {
   }, []);
 
   useEffect(() => {
+    if (seconds === 0) {
+      setDisplayAlertLink(false);
+    }
     if (seconds === 8) {
-      console.log("[Advanced Alert Engine] Displaying high-visibility manual bypass anchor at 8s.");
-      
-      const lat = latitude || (lastKnownLocation?.lat) || 0;
-      const lng = longitude || (lastKnownLocation?.lng) || 0;
-      const savedPhone = typeof window !== 'undefined' ? localStorage.getItem("saved_emergency_phone") || "919876543210" : "919876543210";
-      const cleanPhone = savedPhone.replace(/\D/g, "");
-      
-      const msgBody = `CRITICAL ALERT: SOS active for HK. Track live movement path here: https://maps.google.com/?q=${lat},${lng}`;
-      const nativeWaUrl = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(msgBody)}`;
-
-      if (typeof document !== 'undefined') {
-        let bypassBanner = document.createElement("a");
-        bypassBanner.id = "sos-wa-bypass-banner";
-        bypassBanner.href = nativeWaUrl;
-        bypassBanner.target = "_blank";
-        
-        bypassBanner.style.cssText = "position: fixed; top: 20px; left: 5%; width: 90%; background: #dc2626; color: #ffffff; border: 2px solid #ffffff; padding: 14px; text-align: center; font-weight: 800; font-size: 13px; font-family: monospace; text-decoration: none; border-radius: 4px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); z-index: 99999; text-transform: uppercase; letter-spacing: 0.5px; display: block; animation: flash 1s infinite;";
-        bypassBanner.innerHTML = "⚠️ CLICK TO DESPATCH INSTANT WHATSAPP ALERT";
-        
-        document.body.appendChild(bypassBanner);
-
-        setTimeout(() => { 
-          const banner = document.getElementById("sos-wa-bypass-banner");
-          if (banner) banner.remove(); 
-        }, 8000);
-      }
+      console.log("[Alert Engine] Activating Vercel native layout node link at 8s.");
+      setDisplayAlertLink(true);
     }
 
     if (seconds === 10 && !isStealthActive) {
@@ -398,6 +378,33 @@ export default function SOSPage() {
       
       <div className="z-10 w-full max-w-md flex flex-col items-center text-center space-y-8">
         
+        {displayAlertLink && (
+          <a 
+            href={`https://api.whatsapp.com/send?phone=${(typeof window !== 'undefined' ? (localStorage.getItem("saved_emergency_phone") || "919876543210") : "919876543210").replace(/\D/g, "")}&text=${encodeURIComponent("CRITICAL DISPATCH WARNING: SOS tracked. View location tracing coordinates here: https://maps.google.com/?q=" + (latitude || lastKnownLocation?.lat || 0) + "," + (longitude || lastKnownLocation?.lng || 0))}`}
+            target="_blank" 
+            rel="noopener noreferrer"
+            style={{
+              display: "block",
+              width: "100%",
+              boxSizing: "border-box",
+              background: "#1c1917",
+              border: "1px solid #dc2626",
+              color: "#ffffff",
+              padding: "12px",
+              textAlign: "center",
+              fontFamily: "monospace",
+              fontSize: "11px",
+              fontWeight: "700",
+              textDecoration: "none",
+              borderRadius: "4px",
+              marginBottom: "12px",
+              textTransform: "uppercase"
+            }}
+          >
+            Authorize System Broadcast Verification Update
+          </a>
+        )}
+
         <div className="relative flex items-center justify-center">
           <svg className="absolute w-36 h-36 -rotate-90 pointer-events-none" viewBox="0 0 100 100">
             <circle cx="50" cy="50" r="46" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="2" />
