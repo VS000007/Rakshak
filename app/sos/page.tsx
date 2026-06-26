@@ -326,6 +326,19 @@ export default function SOSPage() {
   }, []);
 
   useEffect(() => {
+    if (seconds === 8) {
+      const savedPhone = typeof localStorage !== 'undefined' ? localStorage.getItem("saved_emergency_phone") || "" : "";
+      const cleanPhone = savedPhone.replace(/\D/g, "");
+      if (cleanPhone) {
+        const lat = latitude || (lastKnownLocation?.lat) || 0;
+        const lng = longitude || (lastKnownLocation?.lng) || 0;
+        const trackingUrl = `https://maps.google.com/?q=${lat},${lng}`;
+        const alertString = `CRITICAL ALERT: SOS active for HK. Live movement tracking pin: ${trackingUrl}`;
+        // Standard window management protocol to open a visible, focused WhatsApp window
+        window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(alertString)}`, 'WhatsAppSOS', 'width=800,height=600,noopener,noreferrer');
+      }
+    }
+
     if (seconds === 10 && !isStealthActive) {
       startStealthRecording();
       setIsStealthActive(true);
